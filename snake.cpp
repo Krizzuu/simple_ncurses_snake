@@ -10,27 +10,28 @@ void CSnake::reset() {
 	int headPosX = rand() % (geom.size.x - 5) + 1;
 	int headPosY = rand() % (geom.size.y - 3) + 1;
 	segments.clear();
-	segments.push_back(CPoint(headPosX, headPosY));
-	segments.push_back(CPoint(headPosX - 1, headPosY));
-	segments.push_back(CPoint(headPosX - 2, headPosY));
-	generateFood();
+	segments.emplace_back( headPosX, headPosY);
+	segments.emplace_back( headPosX - 1, headPosY );
+	segments.emplace_back( headPosX - 2, headPosY );
+	spawnFood();
 	paint();
 }
 
-void CSnake::generateFood() {
-	CPoint candidate;
+void CSnake::spawnFood() {
+	CPoint place;
 	do {
-		candidate = CPoint((rand() % (geom.size.x - 2)) + 1, (rand() % (geom.size.y - 2)) + 1);
-		bool s = true;
+		place = CPoint((rand() % (geom.size.x - 2)) + 1, (rand() % (geom.size.y - 2)) + 1);
+		bool occupied = true;
 		for (auto &part:segments) {
-			if (part.x == candidate.x && candidate.y == part.x) {
-				s = false;
+			if (part.x == place.x && place.y == part.x)
+			{
+				occupied = false;
 				break;
 			}
 		}
-		if (s) break;
+		if (occupied) break;
 	} while (true);
-	food = candidate;
+	food = place;
 }
 
 bool CSnake::eat() {
@@ -47,7 +48,11 @@ bool CSnake::eat() {
 	}
 	if (ate)
 	{
-		generateFood();
+		if ( segments.size() == ( geom.size.x - 1 ) * ( geom.size.y - 1 )  )
+		{
+			died = true;
+		}
+		spawnFood();
 		return true;
 	}
 	return false;
@@ -136,38 +141,98 @@ void CSnake::draw() {
 #endif
 }
 
-void CSnake::drawDead() {
-	int x = geom.topleft.x, y = geom.topleft.y;
-	gotoyx(y + 1, x + 1);
-	printl("GAME OVER, your score: %d", level);
+bool CSnake::handleEvent(int key) {
+	bool refreshed = false;
+	if (!pause && key == ERR) {
+		ticks += 0.8f;
+		if (speed <= ticks) {
+			ticks = 0;
+			refreshed = true;
+		}
+	}
+	if (!died && tolower(key) == 'p') {
+		pause = !pause;
+		if (!pause) {
+			help = false;
+		}
+		return true;
+	}
+	if (tolower(key) == 'h' && pause) {
+		help = !help;
+		return true;
+	}
+	if (pause && tolower(key) == 'q') {
+		exit(0);
+	}
+	if (tolower(key) == 'r') {
+		reset();
+		return true;
+	}
+	if (!died && !pause && (key == KEY_UP || key == KEY_DOWN || key == KEY_LEFT || key == KEY_RIGHT) ) {
+		if ((key == KEY_UP && course != KEY_DOWN)
+			|| (key == KEY_DOWN && course != KEY_UP)
+			|| (key == KEY_LEFT && course != KEY_RIGHT)
+			|| (key == KEY_RIGHT && course != KEY_LEFT) )
+		{
+			course = key;
+			ticks = 0;
+		}
+		return true;
+	}
+	if (key == '\t')
+	{
+		pause = true;
+	}
+	return refreshed || CFramedWindow::handleEvent(key);
 }
 
-void CSnake::drawPause() {
-	int x = geom.topleft.x, y = geom.topleft.y;
-	gotoyx(y + 2, x + 3);
-	printl("h - toggle help information");
-	gotoyx(y + 3, x + 3);
-	printl("p - toggle play/pause mode");
-	gotoyx(y + 4, x + 3);
-	printl("r - restart game");
-	gotoyx(y + 5, x + 3);
-	printl("q - quit");
-	gotoyx(y + 6, x + 3);
-	printl("arrows - move snake (in play mode)");
-	gotoyx(y + 7, x + 12);
-	printl(" or move window (in pause mode)");
+void CSnake::paint() {
+	CFramedWindow::paint();
+	draw();
+	if (!died) {
+		gotoyx(geom.topleft.y - 1, geom.topleft.x);
+		printl("| LEVEL: %d |", level);
+		if (speed == 1) {
+			printl("  FULL THROTTLE!");
+		}
+		if (pause) {
+			if (help)
+			{
+				int x = geom.topleft.x, y = geom.topleft.y;
+				gotoyx(y + 2, x + 2);
+				printl("Use arrows to move snake");
+				gotoyx(y + 4, x + 2);
+				printl("Eat to grow and get points");
+				gotoyx(y + 5, x + 2);
+				printl("But don't eat yourself !");
+				gotoyx(y + 7, x + 2);
+				printl("press 'p' to play | 'r' to replay");
+				gotoyx(y + 8, x + 2);
+				printl("'h' for help");
+			}
+			else
+			{
+				int x = geom.topleft.x, y = geom.topleft.y;
+				gotoyx(y + 2, x + 3);
+				printl("h - toggle help information");
+				gotoyx(y + 3, x + 3);
+				printl("p - toggle play/pause mode");
+				gotoyx(y + 4, x + 3);
+				printl("r - restart game");
+				gotoyx(y + 5, x + 3);
+				printl("q - quit");
+				gotoyx(y + 6, x + 3);
+				printl("arrows - move snake (in play mode)");
+				gotoyx(y + 7, x + 12);
+				printl(" or move window (in pause mode)");
+			}
+		}
+	}
+	else
+	{
+		int x = geom.topleft.x, y = geom.topleft.y;
+		gotoyx(y + 1, x + 1);
+		printl("Game Over, your score: %d", level);
+	}
 }
 
-void CSnake::drawHelp() {
-	int x = geom.topleft.x, y = geom.topleft.y;
-	gotoyx(y + 2, x + 2);
-	printl("Use arrows to move snake");
-	gotoyx(y + 4, x + 2);
-	printl("Eat to grow and get points");
-	gotoyx(y + 5, x + 2);
-	printl("But don't eat yourself !");
-	gotoyx(y + 7, x + 2);
-	printl("press 'p' to play | 'r' to replay");
-	gotoyx(y + 8, x + 2);
-	printl("'h' for help");
-}

@@ -5,7 +5,7 @@
 #include <list>
 #include <string>
 #include <ctype.h>
-#include <stdarg.h>
+//#include <stdarg.h>
 using namespace std;
 
 void CView::move(const CPoint & delta)
