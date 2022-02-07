@@ -19,6 +19,9 @@ void init_screen()
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 	curs_set(0);
+#ifdef USE_COLOR
+	start_color();
+#endif
 }
 
 void done_screen()
@@ -71,6 +74,18 @@ void printc(char c)
 		addch(c);
 	}
 	curx++;
+	}
+}
+void printc(chtype c)
+{
+	if(c != '\n' && c != '\r')
+	{
+		if(cury >= TopLeft.y && cury < BottomRight.y && curx >= TopLeft.x && curx < BottomRight.x)
+		{
+			wmove(stdscr, cury, curx);
+			addch(c);
+		}
+		curx++;
 	}
 }
 

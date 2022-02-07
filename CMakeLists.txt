@@ -13,3 +13,4 @@ add_executable(simple_ncurses_snake
         winsys.h
         winsys.cpp
         )
+target_link_libraries( simple_ncurses_snake curses )

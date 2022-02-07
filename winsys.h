@@ -7,6 +7,7 @@
 #include <string>
 //#include <ctype.h>
 //#include <stdarg.h>
+
 using namespace std;
 
 class CView

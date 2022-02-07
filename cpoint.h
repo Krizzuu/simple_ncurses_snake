@@ -2,6 +2,7 @@
 #define __CPOINT_H__
 
 #include <list>
+//#define USE_COLOR
 
 using namespace std;
 

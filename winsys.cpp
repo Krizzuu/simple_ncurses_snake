@@ -123,7 +123,7 @@ void CGroup::paint()
 
 bool CGroup::handleEvent(int key)
 {
-	if (!children.empty() && children.back()->handleEvent (key))
+	if (!children.empty() && children.back()->handleEvent(key) )
 		return true;
 	if (key == '\t')
 		{
