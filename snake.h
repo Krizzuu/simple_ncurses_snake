@@ -18,7 +18,7 @@ private:
 		help
 	};
 	windowStates windowState;
-	bool died = false;
+	bool dead = false;
 
 	// const expr
 	static constexpr float startSpeed = 20.0f;

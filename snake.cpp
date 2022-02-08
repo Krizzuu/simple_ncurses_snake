@@ -2,7 +2,7 @@
 
 void CSnake::reset() {
 	windowState = windowStates::gaming;
-	died = false;
+	dead = false;
 	course = KEY_RIGHT;
 	speed = startSpeed;
 	score = 0;
@@ -21,8 +21,9 @@ void CSnake::spawnFood() {
 	do {
 		place = CPoint((rand() % (geom.size.x - 2)) + 1, (rand() % (geom.size.y - 2)) + 1);
 		bool occupied = true;
-		for (auto &part:segments) {
-			if (part.x == place.x && place.y == part.x)
+		for (auto &part:segments)
+		{
+			if ( place == part )
 			{
 				occupied = false;
 				break;
@@ -37,11 +38,11 @@ bool CSnake::eat() {
 	bool ate = false;
 	for (auto &part : segments)
 	{
-		if (part.x == food.x && part.y == food.y)
+		if ( part == food )
 		{
 			score++;
 			ate = true;
-			if (speed > 1.0f) speed -= 0.5f;
+			if (speed > 1.0f) speed *= 0.96f;
 			break;
 		}
 	}
@@ -49,9 +50,12 @@ bool CSnake::eat() {
 	{
 		if ( segments.size() == (unsigned int)(( geom.size.x - 1 ) * ( geom.size.y - 1 ))  )
 		{
-			died = true;
+			dead = true;
 		}
-		spawnFood();
+		else
+		{
+			spawnFood();
+		}
 		return true;
 	}
 	return false;
@@ -59,7 +63,7 @@ bool CSnake::eat() {
 
 bool CSnake::move() {
 
-	CPoint tail = segments[segments.size() - 1];
+	CPoint newTail = segments[segments.size() - 1];
 	for (unsigned long i = segments.size() - 1; i > 0; i--)
 	{
 		segments[i] = segments[i - 1];
@@ -103,55 +107,54 @@ bool CSnake::move() {
 	}
 	if (eat())
 	{
-		segments.push_back(tail);
+		segments.push_back(newTail);
 	}
 	return true;
 }
 
 void CSnake::draw() {
 	if ( ( windowState != windowStates::paused && windowState != windowStates::help ) && !move()) {
-		died = true;
+		dead = true;
 		windowState = windowStates::paused;
 	}
 	gotoyx(food.y + geom.topleft.y, food.x + geom.topleft.x);
-#ifdef USE_COLOR
+	#ifdef USE_COLOR
 	printc(' ' | COLOR_PAIR( 4 ) );
-
-#else
+	#else
 	printc('O');
-#endif
+	#endif
 	int k = 0;
 	for (uint i = 1; i < segments.size(); i++, k++)
 	{
 		gotoyx(segments[i].y + geom.topleft.y, segments[i].x + geom.topleft.x);
-#ifdef USE_COLOR
+	#ifdef USE_COLOR
 		if ( k == 2 )
 		{
 			k = 0;
 		}
 		printc( segmentChars[k] );
-#else
+	#else
 		printc('+');
-#endif
+	#endif
 	}
 	gotoyx(segments[0].y + geom.topleft.y, segments[0].x + geom.topleft.x);
-#ifdef USE_COLOR
+	#ifdef USE_COLOR
 	printc(headChar);
-#else
+	#else
 	printc('*');
-#endif
+	#endif
 }
 
 bool CSnake::handleEvent(int key) {
 	bool refreshed = false;
 	if (windowState != windowStates::paused && key == ERR) {
-		ticks += 0.8f;
+		ticks += 1.0f;
 		if (speed <= ticks) {
 			ticks = 0;
 			refreshed = true;
 		}
 	}
-	if (!died && tolower(key) == 'p') {
+	if (!dead && tolower(key) == 'p') {
 		if ( windowState == windowStates::paused || windowState == windowStates::help )
 		{
 			windowState = windowStates::gaming;
@@ -177,14 +180,14 @@ bool CSnake::handleEvent(int key) {
 		exit(0);
 	}
 	if (tolower(key) == 'r') {
-		if ( windowState == windowStates::gaming || died )
+		if ( windowState == windowStates::gaming || dead )
 		{
 			reset();
 			windowState = windowStates::help;
 		}
 		return true;
 	}
-	if (!died && windowState != windowStates::paused && (key == KEY_UP || key == KEY_DOWN || key == KEY_LEFT || key == KEY_RIGHT) ) {
+	if (!dead && windowState != windowStates::paused && (key == KEY_UP || key == KEY_DOWN || key == KEY_LEFT || key == KEY_RIGHT) ) {
 		if ((key == KEY_UP && course != KEY_DOWN)
 			|| (key == KEY_DOWN && course != KEY_UP)
 			|| (key == KEY_LEFT && course != KEY_RIGHT)
@@ -205,14 +208,13 @@ bool CSnake::handleEvent(int key) {
 void CSnake::paint() {
 	CFramedWindow::paint();
 	draw();
-	if (!died) {
+	if (!dead) {
 		gotoyx(geom.topleft.y - 1, geom.topleft.x);
 		printl("| SCORE: %d |", score);
-		int x, y;
 
 		if (windowState == windowStates::help)
 		{
-			x = geom.topleft.x, y = geom.topleft.y;
+			int x = geom.topleft.x, y = geom.topleft.y;
 			gotoyx(y + 2, x + 2);
 			printl("Use arrows to move snake");
 			gotoyx(y + 4, x + 2);
@@ -220,8 +222,10 @@ void CSnake::paint() {
 			gotoyx(y + 5, x + 2);
 			printl("But don't eat yourself !");
 			gotoyx(y + 7, x + 2);
-			printl("press 'p' to play | 'r' to replay");
-			gotoyx(y + 8, x + 2);
+			printl("press 'p' to play");
+			gotoyx(y + 8, x + 8);
+			printl("'r' to replay");
+			gotoyx(y + 9, x + 8);
 			printl("'h' for help");
 		}
 	}
