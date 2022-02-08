@@ -177,7 +177,11 @@ bool CSnake::handleEvent(int key) {
 		exit(0);
 	}
 	if (tolower(key) == 'r') {
-		reset();
+		if ( windowState == windowStates::gaming || died )
+		{
+			reset();
+			windowState = windowStates::help;
+		}
 		return true;
 	}
 	if (!died && windowState != windowStates::paused && (key == KEY_UP || key == KEY_DOWN || key == KEY_LEFT || key == KEY_RIGHT) ) {
@@ -204,12 +208,10 @@ void CSnake::paint() {
 	if (!died) {
 		gotoyx(geom.topleft.y - 1, geom.topleft.x);
 		printl("| SCORE: %d |", score);
-		if (speed == 1) {
-			printl("  FULL THROTTLE!");
-		}
 		int x, y;
-		switch ( windowState ) {
-		case windowStates::help:
+
+		if (windowState == windowStates::help)
+		{
 			x = geom.topleft.x, y = geom.topleft.y;
 			gotoyx(y + 2, x + 2);
 			printl("Use arrows to move snake");
@@ -221,24 +223,6 @@ void CSnake::paint() {
 			printl("press 'p' to play | 'r' to replay");
 			gotoyx(y + 8, x + 2);
 			printl("'h' for help");
-			break;
-		case windowStates::paused:
-				x = geom.topleft.x, y = geom.topleft.y;
-				gotoyx(y + 2, x + 3);
-				printl("h - toggle help information");
-				gotoyx(y + 3, x + 3);
-				printl("p - toggle play/pause mode");
-				gotoyx(y + 4, x + 3);
-				printl("r - restart game");
-				gotoyx(y + 5, x + 3);
-				printl("q - quit");
-				gotoyx(y + 6, x + 3);
-				printl("arrows - move snake (in play mode)");
-				gotoyx(y + 7, x + 12);
-				printl(" or move window (in pause mode)");
-				break;
-		default:
-			break;
 		}
 	}
 	else
