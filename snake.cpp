@@ -1,8 +1,7 @@
 #include "snake.h"
 
 void CSnake::reset() {
-	pause = false;
-	help = false;
+	windowState = windowStates::gaming;
 	died = false;
 	course = KEY_RIGHT;
 	speed = startSpeed;
@@ -59,10 +58,7 @@ bool CSnake::eat() {
 }
 
 bool CSnake::move() {
-	if (pause)
-	{
-		return true;
-	}
+
 	CPoint tail = segments[segments.size() - 1];
 	for (unsigned long i = segments.size() - 1; i > 0; i--)
 	{
@@ -113,9 +109,9 @@ bool CSnake::move() {
 }
 
 void CSnake::draw() {
-	if (!pause && !move()) {
+	if ( ( windowState != windowStates::paused && windowState != windowStates::help ) && !move()) {
 		died = true;
-		pause = true;
+		windowState = windowStates::paused;
 	}
 	gotoyx(food.y + geom.topleft.y, food.x + geom.topleft.x);
 #ifdef USE_COLOR
@@ -148,7 +144,7 @@ void CSnake::draw() {
 
 bool CSnake::handleEvent(int key) {
 	bool refreshed = false;
-	if (!pause && key == ERR) {
+	if (windowState != windowStates::paused && key == ERR) {
 		ticks += 0.8f;
 		if (speed <= ticks) {
 			ticks = 0;
@@ -156,24 +152,35 @@ bool CSnake::handleEvent(int key) {
 		}
 	}
 	if (!died && tolower(key) == 'p') {
-		pause = !pause;
-		if (!pause) {
-			help = false;
+		if ( windowState == windowStates::paused || windowState == windowStates::help )
+		{
+			windowState = windowStates::gaming;
+		}
+		else
+		{
+			windowState = windowStates::paused;
 		}
 		return true;
 	}
-	if (tolower(key) == 'h' && pause) {
-		help = !help;
+	if (tolower(key) == 'h') {
+		if ( windowState == windowStates::paused || windowState == windowStates::gaming )
+		{
+			windowState = windowStates::help;
+		}
+		else
+		{
+			windowState = windowStates::gaming;
+		}
 		return true;
 	}
-	if (pause && tolower(key) == 'q') {
+	if (windowState == windowStates::paused && tolower(key) == 'q') {
 		exit(0);
 	}
 	if (tolower(key) == 'r') {
 		reset();
 		return true;
 	}
-	if (!died && !pause && (key == KEY_UP || key == KEY_DOWN || key == KEY_LEFT || key == KEY_RIGHT) ) {
+	if (!died && windowState != windowStates::paused && (key == KEY_UP || key == KEY_DOWN || key == KEY_LEFT || key == KEY_RIGHT) ) {
 		if ((key == KEY_UP && course != KEY_DOWN)
 			|| (key == KEY_DOWN && course != KEY_UP)
 			|| (key == KEY_LEFT && course != KEY_RIGHT)
@@ -186,7 +193,7 @@ bool CSnake::handleEvent(int key) {
 	}
 	if (key == '\t')
 	{
-		pause = true;
+		windowState = windowStates::paused;
 	}
 	return refreshed || CFramedWindow::handleEvent(key);
 }
@@ -200,24 +207,23 @@ void CSnake::paint() {
 		if (speed == 1) {
 			printl("  FULL THROTTLE!");
 		}
-		if (pause) {
-			if (help)
-			{
-				int x = geom.topleft.x, y = geom.topleft.y;
-				gotoyx(y + 2, x + 2);
-				printl("Use arrows to move snake");
-				gotoyx(y + 4, x + 2);
-				printl("Eat to grow and get points");
-				gotoyx(y + 5, x + 2);
-				printl("But don't eat yourself !");
-				gotoyx(y + 7, x + 2);
-				printl("press 'p' to play | 'r' to replay");
-				gotoyx(y + 8, x + 2);
-				printl("'h' for help");
-			}
-			else
-			{
-				int x = geom.topleft.x, y = geom.topleft.y;
+		int x, y;
+		switch ( windowState ) {
+		case windowStates::help:
+			x = geom.topleft.x, y = geom.topleft.y;
+			gotoyx(y + 2, x + 2);
+			printl("Use arrows to move snake");
+			gotoyx(y + 4, x + 2);
+			printl("Eat to grow and get points");
+			gotoyx(y + 5, x + 2);
+			printl("But don't eat yourself !");
+			gotoyx(y + 7, x + 2);
+			printl("press 'p' to play | 'r' to replay");
+			gotoyx(y + 8, x + 2);
+			printl("'h' for help");
+			break;
+		case windowStates::paused:
+				x = geom.topleft.x, y = geom.topleft.y;
 				gotoyx(y + 2, x + 3);
 				printl("h - toggle help information");
 				gotoyx(y + 3, x + 3);
@@ -230,7 +236,9 @@ void CSnake::paint() {
 				printl("arrows - move snake (in play mode)");
 				gotoyx(y + 7, x + 12);
 				printl(" or move window (in pause mode)");
-			}
+				break;
+		default:
+			break;
 		}
 	}
 	else

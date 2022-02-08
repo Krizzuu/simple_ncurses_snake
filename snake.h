@@ -12,8 +12,12 @@
 class CSnake : public CFramedWindow {
 private:
 	// states
-	bool pause = true;
-	bool help = true;
+	enum class windowStates {
+		gaming,
+		paused,
+		help
+	};
+	windowStates windowState;
 	bool died = false;
 
 	// const expr
@@ -46,8 +50,7 @@ public:
 			CFramedWindow(r, _c) {
 		srand(time(NULL));
 		reset();
-		help = true;
-		pause = true;
+		windowState = CSnake::windowStates::help;
 #ifdef USE_COLOR
 		init_pair( 1, COLOR_BLACK, COLOR_YELLOW );
 		init_pair( 2, COLOR_BLACK, COLOR_GREEN );
