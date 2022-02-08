@@ -6,7 +6,7 @@ void CSnake::reset() {
 	died = false;
 	course = KEY_RIGHT;
 	speed = startSpeed;
-	level = 0;
+	score = 0;
 	int headPosX = rand() % (geom.size.x - 5) + 1;
 	int headPosY = rand() % (geom.size.y - 3) + 1;
 	segments.clear();
@@ -40,7 +40,7 @@ bool CSnake::eat() {
 	{
 		if (part.x == food.x && part.y == food.y)
 		{
-			level++;
+			score++;
 			ate = true;
 			if (speed > 1.0f) speed -= 0.5f;
 			break;
@@ -118,7 +118,12 @@ void CSnake::draw() {
 		pause = true;
 	}
 	gotoyx(food.y + geom.topleft.y, food.x + geom.topleft.x);
+#ifdef USE_COLOR
+	printc(' ' | COLOR_PAIR( 4 ) );
+
+#else
 	printc('O');
+#endif
 	int k = 0;
 	for (uint i = 1; i < segments.size(); i++, k++)
 	{
@@ -191,7 +196,7 @@ void CSnake::paint() {
 	draw();
 	if (!died) {
 		gotoyx(geom.topleft.y - 1, geom.topleft.x);
-		printl("| LEVEL: %d |", level);
+		printl("| SCORE: %d |", score);
 		if (speed == 1) {
 			printl("  FULL THROTTLE!");
 		}
@@ -232,7 +237,7 @@ void CSnake::paint() {
 	{
 		int x = geom.topleft.x, y = geom.topleft.y;
 		gotoyx(y + 1, x + 1);
-		printl("Game Over, your score: %d", level);
+		printl("Game Over, your score: %d", score);
 	}
 }
 

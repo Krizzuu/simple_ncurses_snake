@@ -25,7 +25,7 @@ private:
 
 	// move stuff
 	int course = KEY_RIGHT;
-	int level = 0;
+	int score = 0;
 	float speed = startSpeed;
 	float ticks = 0;
 	CPoint food;
@@ -53,9 +53,10 @@ public:
 		init_pair( 2, COLOR_BLACK, COLOR_GREEN );
 		init_color( 100, 306, 510, 306 );
 		init_pair( 3, COLOR_BLACK, 100 );
-		headChar = '*' | COLOR_PAIR(1);
-		segmentChars[0] = '+' | COLOR_PAIR(2);
-		segmentChars[1] = '+' | COLOR_PAIR(3);
+		init_pair( 4, COLOR_BLACK, COLOR_RED );
+		headChar = ' ' | COLOR_PAIR(1);
+		segmentChars[0] = ' ' | COLOR_PAIR(2);
+		segmentChars[1] = ' ' | COLOR_PAIR(3);
 #endif
 		draw();
 	}
