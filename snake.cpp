@@ -85,7 +85,7 @@ bool CSnake::move() {
 	}
 	for (uint i = 1; i < segments.size(); i++)
 	{
-		if (segments[0].x == segments[i].x && segments[0].y == segments[i].y) {
+		if ( segments[0] == segments[i] ) {
 			return false;
 		}
 	}
@@ -93,7 +93,7 @@ bool CSnake::move() {
 	{
 		segments[0].x = geom.size.x - 2;
 	}
-	if (segments[0].x == geom.size.x - 1)
+	else if (segments[0].x == geom.size.x - 1)
 	{
 		segments[0].x = 1;
 	}
@@ -101,7 +101,7 @@ bool CSnake::move() {
 	{
 		segments[0].y = geom.size.y - 2;
 	}
-	if (segments[0].y == geom.size.y - 1)
+	else if (segments[0].y == geom.size.y - 1)
 	{
 		segments[0].y = 1;
 	}
@@ -113,7 +113,7 @@ bool CSnake::move() {
 }
 
 void CSnake::draw() {
-	if ( ( windowState != windowStates::paused && windowState != windowStates::help ) && !move()) {
+	if ( ( windowState != windowStates::paused && windowState != windowStates::help ) && !move() ) {
 		dead = true;
 		windowState = windowStates::paused;
 	}
