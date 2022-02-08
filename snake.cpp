@@ -47,7 +47,7 @@ bool CSnake::eat() {
 	}
 	if (ate)
 	{
-		if ( segments.size() == ( geom.size.x - 1 ) * ( geom.size.y - 1 )  )
+		if ( segments.size() == (unsigned int)(( geom.size.x - 1 ) * ( geom.size.y - 1 ))  )
 		{
 			died = true;
 		}
