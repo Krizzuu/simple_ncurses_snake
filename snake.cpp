@@ -147,15 +147,24 @@ void CSnake::draw() {
 
 bool CSnake::handleEvent(int key) {
 	bool refreshed = false;
-	if (windowState != windowStates::paused && key == ERR) {
-		ticks += 1.0f;
-		if (speed <= ticks) {
-			ticks = 0;
-			refreshed = true;
+	switch ( key )
+	{
+	case ERR:
+		if ( windowState == windowStates::gaming )
+		{
+			ticks += 1.0f;
+			if (speed <= ticks) {
+				ticks = 0;
+				refreshed = true;
+			}
 		}
-	}
-	if (!dead && tolower(key) == 'p') {
-		if ( windowState == windowStates::paused || windowState == windowStates::help )
+		break;
+	case '\t':
+		windowState = windowStates::paused;
+		break;
+	case 'p':
+	case 'P':
+		if ( !dead && windowState != windowStates::gaming )
 		{
 			windowState = windowStates::gaming;
 		}
@@ -164,9 +173,9 @@ bool CSnake::handleEvent(int key) {
 			windowState = windowStates::paused;
 		}
 		return true;
-	}
-	if (tolower(key) == 'h') {
-		if ( windowState == windowStates::paused || windowState == windowStates::gaming )
+	case 'h':
+	case 'H':
+		if ( !dead && windowState != windowStates::help )
 		{
 			windowState = windowStates::help;
 		}
@@ -175,32 +184,36 @@ bool CSnake::handleEvent(int key) {
 			windowState = windowStates::gaming;
 		}
 		return true;
-	}
-	if (windowState == windowStates::paused && tolower(key) == 'q') {
+	case 'q':
+	case 'Q':
+		if ( windowState != windowStates::gaming )
 		exit(0);
-	}
-	if (tolower(key) == 'r') {
+	case 'r':
+	case 'R':
 		if ( windowState == windowStates::gaming || dead )
 		{
 			reset();
 			windowState = windowStates::help;
 		}
 		return true;
-	}
-	if (!dead && windowState != windowStates::paused && (key == KEY_UP || key == KEY_DOWN || key == KEY_LEFT || key == KEY_RIGHT) ) {
-		if ((key == KEY_UP && course != KEY_DOWN)
-			|| (key == KEY_DOWN && course != KEY_UP)
-			|| (key == KEY_LEFT && course != KEY_RIGHT)
-			|| (key == KEY_RIGHT && course != KEY_LEFT) )
+	case KEY_UP:
+	case KEY_DOWN:
+	case KEY_LEFT:
+	case KEY_RIGHT:
+		if ( !dead && windowState == windowStates::gaming )
 		{
-			course = key;
-			ticks = 0;
+			if ( (key == KEY_UP && course != KEY_DOWN)
+				|| (key == KEY_DOWN && course != KEY_UP)
+				|| (key == KEY_LEFT && course != KEY_RIGHT)
+				|| (key == KEY_RIGHT && course != KEY_LEFT) )
+			{
+				course = key;
+				ticks = 0;
+			}
+			return true;
 		}
-		return true;
-	}
-	if (key == '\t')
-	{
-		windowState = windowStates::paused;
+	default:
+		break;
 	}
 	return refreshed || CFramedWindow::handleEvent(key);
 }
