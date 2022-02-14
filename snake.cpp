@@ -113,7 +113,7 @@ bool CSnake::move() {
 }
 
 void CSnake::draw() {
-	if ( ( windowState != windowStates::paused && windowState != windowStates::help ) && !move() ) {
+	if ( windowState == windowStates::gaming && !move() ) {
 		dead = true;
 		windowState = windowStates::paused;
 	}
